@@ -1,0 +1,31 @@
+# This is quick-start approximate workflow and may not work for everyone, see docs/Building-and-Running.rst for details.
+
+% cd ..
+% git clone https://github.com/jedisct1/libsodium.git libsodium-server
+% cd libsodium-server
+% patch -p1 < ../keystone-demo/sodium_patches/configure.ac.patch
+% ./autogen.sh
+% ./configure --host=riscv64-unknown-linux-gnu --disable-ssp --disable-asm --without-pthreads
+% make
+% cd ..
+% git clone https://github.com/jedisct1/libsodium.git libsodium-client
+% cd libsodium-client
+% ./autogen.sh
+% ./configure --host=riscv64-unknown-linux-gnu --disable-ssp --disable-asm --without-pthreads
+% make
+% cd ../keystone-demo
+% cp ../riscv-pk/hash/sm_expected_hash.h include/ # Or the relevant expected sm hash for your platform, this is only valid for qemu testing
+% KEYSTONE_SDK_DIR=`pwd`/../keystone/sdk LIBSODIUM_DIR=`pwd`/../libsodium-server/src/libsodium LIBSODIUM_CLIENT_DIR=`pwd`/../libsodium-client/src/libsodium make
+% KEYSTONE_SDK_DIR=`pwd`/../keystone/sdk LIBSODIUM_DIR=`pwd`/../libsodium-server/src/libsodium LIBSODIUM_CLIENT_DIR=`pwd`/../libsodium-client/src/libsodium make trusted_client.riscv
+
+# Now start qemu and run the demo
+
+% cd ../
+% scripts/run-qemu.sh
+
+# login as root / busybear
+
+% insmod keystone-driver.ko
+% ifdown lo && ifup lo
+% ./enclave-host.riscv &
+% ./trusted_client.riscv 127.0.0.1
